@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import { connect } from 'react-redux';
+import { Redirect } from 'react-router-dom';
 import { FormGroup, FormControl } from 'react-bootstrap';
 import { API_URL_1 } from '../supports/api-url/apiurl';
 
@@ -8,13 +9,15 @@ class OrderSeats extends Component {
     state = { listBangku: { }, studio: { }, getDataStudio: false, totalPrice: 0}
     
     componentWillMount() {
-        axios.get(API_URL_1 + '/studios', {
-            params: {
-                id: this.props.movie.id
-            }
-        }).then((response1) => {
-            this.getOrderList("Morning", response1.data[0], false)
-        })
+        if(this.props.movie.id !== 0) {
+            axios.get(API_URL_1 + '/studios', {
+                params: {
+                    id: this.props.movie.id
+                }
+            }).then((response1) => {
+                this.getOrderList("Morning", response1.data[0], false)
+            })
+        }
     }
 
     getOrderList = (schedule, theStudio, bangkuTerisi) => {
@@ -107,18 +110,14 @@ class OrderSeats extends Component {
         // console.log(nomor)
         // console.log(row)
         if(!this.state.listBangku[`row${row}Disabled`][nomor]) {
+            var objHarga = { Morning: 25000, Evening: 35000}
             this.state.listBangku[`row${row}Checked`][nomor] = !this.state.listBangku[`row${row}Checked`][nomor];
-            if(this.inputSchedule.value === "Morning" && this.state.listBangku[`row${row}Checked`][nomor]){
-                this.state.totalPrice += 25000;
+            if(this.state.listBangku[`row${row}Checked`][nomor]){
+                this.state.totalPrice += objHarga[this.inputSchedule.value];
+                // this.setState({ totalPrice: (this.state.totalPrice+25000)})
             }
-            else if(this.inputSchedule.value === "Evening" && this.state.listBangku[`row${row}Checked`][nomor]){
-                this.state.totalPrice += 35000;
-            }
-            else if(this.inputSchedule.value === "Morning" && !this.state.listBangku[`row${row}Checked`][nomor]){
-                this.state.totalPrice -= 25000;
-            }
-            else if(this.inputSchedule.value === "Evening" && !this.state.listBangku[`row${row}Checked`][nomor]){
-                this.state.totalPrice -= 35000;
+            else if(!this.state.listBangku[`row${row}Checked`][nomor]){
+                this.state.totalPrice -= objHarga[this.inputSchedule.value];
             }
             this.setState({})
         }
@@ -131,31 +130,36 @@ class OrderSeats extends Component {
     }
 
     onBtnCheckOutClick = () => {
-        if(window.confirm("Are you sure to Checkout?")){
-            axios.post(API_URL_1 + '/orders', {
-                userId: this.props.auth.id,
-                movieId: this.props.movie.id,
-                studioId: this.state.studio.id,
-                jadwal: this.inputSchedule.value,
-                totalHarga: this.state.totalPrice
-            }).then((res1) => {
-                var { jumlahBaris, jumlahKursi } = this.state.studio;
-                for(var i = 1; i <= jumlahBaris; i++){
-                    for(var j = 0; j < (jumlahKursi/jumlahBaris); j++) {
-                        if(!this.state.listBangku[`row${i}Disabled`][j] 
-                            && this.state.listBangku[`row${i}Checked`][j])
-                        {
-                            axios.post(API_URL_1 + '/ordersDetails',{
-                                orderId: res1.data.id,
-                                row: i,
-                                seat: j+1
-                            }).then((res2) => {
-                                this.successCheckout();
-                            })
+        if(this.props.auth.id !== 0) {
+            if(window.confirm("Are you sure to Checkout?")){
+                axios.post(API_URL_1 + '/orders', {
+                    userId: this.props.auth.id,
+                    movieId: this.props.movie.id,
+                    studioId: this.state.studio.id,
+                    jadwal: this.inputSchedule.value,
+                    totalHarga: this.state.totalPrice
+                }).then((res1) => {
+                    var { jumlahBaris, jumlahKursi } = this.state.studio;
+                    for(var i = 1; i <= jumlahBaris; i++){
+                        for(var j = 0; j < (jumlahKursi/jumlahBaris); j++) {
+                            if(!this.state.listBangku[`row${i}Disabled`][j] 
+                                && this.state.listBangku[`row${i}Checked`][j])
+                            {
+                                axios.post(API_URL_1 + '/ordersDetails',{
+                                    orderId: res1.data.id,
+                                    row: i,
+                                    seat: j+1
+                                }).then((res2) => {
+                                    this.successCheckout();
+                                })
+                            }
                         }
                     }
-                }
-            })
+                })
+            }
+        }
+        else {
+            alert("Please Login First!");
         }
     }
 
@@ -244,63 +248,67 @@ class OrderSeats extends Component {
     render() {
         const { id, title, url, image, description } = this.props.movie;
         // console.log(this.state.listBangku)
-        return(
-            <div className="container" style={{paddingTop:"100px"}}>
-                <div className="row">
-                    <div className="col-xs-4">
-                        <img className="img-responsive" alt="Movie Desc" src={image}/>
+        if(id !== 0) {
+            return(
+                <div className="container" style={{paddingTop:"100px"}}>
+                    <div className="row">
+                        <div className="col-xs-4">
+                            <img className="img-responsive" alt="Movie Desc" src={image}/>
+                        </div>
+                        <div className="col-xs-8" style={{ textAlign:"left"}}>
+                            <h1>{title}</h1>
+                            <p style={{ paddingLeft: "10px"}}>{description}</p>
+                            <a style={{ marginLeft: "10px", marginRight: "10px"}} href={url} className="btn btn-default">
+                                IMDB
+                            </a>
+                            {/* <DropdownButton
+                                bsStyle={"Schedule"}
+                                title={"Schedule"}
+                                id={`dropdown-basic`}
+                                >
+                                <MenuItem eventKey="1">Morning</MenuItem>
+                                <MenuItem eventKey="2">Evening</MenuItem>
+                            </DropdownButton> */}
+                            <FormGroup style={{width:"150px", display:"inline"}} controlId="formControlsSelect">
+                                <FormControl inputRef={ kucing => this.inputSchedule=kucing }  onChange={this.onSelectSchedule} style={{width:"150px", display:"inline"}} componentClass="select" placeholder="select">
+                                    {/* <option value="select">-Pick Schedule-</option> */}
+                                    <option value="Morning">Morning</option>
+                                    <option value="Evening">Evening</option>
+                                </FormControl>
+                            </FormGroup>
+                        </div>
                     </div>
-                    <div className="col-xs-8" style={{ textAlign:"left"}}>
-                        <h1>{title}</h1>
-                        <p style={{ paddingLeft: "10px"}}>{description}</p>
-                        <a style={{ marginLeft: "10px", marginRight: "10px"}} href={url} className="btn btn-default">
-                            IMDB
-                        </a>
-                        {/* <DropdownButton
-                            bsStyle={"Schedule"}
-                            title={"Schedule"}
-                            id={`dropdown-basic`}
-                            >
-                            <MenuItem eventKey="1">Morning</MenuItem>
-                            <MenuItem eventKey="2">Evening</MenuItem>
-                        </DropdownButton> */}
-                        <FormGroup style={{width:"150px", display:"inline"}} controlId="formControlsSelect">
-                            <FormControl inputRef={ kucing => this.inputSchedule=kucing }  onChange={this.onSelectSchedule} style={{width:"150px", display:"inline"}} componentClass="select" placeholder="select">
-                                {/* <option value="select">-Pick Schedule-</option> */}
-                                <option value="Morning">Morning</option>
-                                <option value="Evening">Evening</option>
-                            </FormControl>
-                        </FormGroup>
+                    <div className="row">
+                        <div className="col-xs-4"></div>
+                        <div className="col-xs-3" style={{ paddingLeft: "30px"}}>
+                            <h3 className="label-success">Layar</h3>
+                        </div>
+                    </div>
+                    <div className="row" style={{ paddingTop: "30px"}}>
+                        <div className="col-xs-4"></div>
+                        <div className="col-xs-8" style={{ paddingLeft: "90px"}}>
+                            <table>
+                                { this.renderBangku() }
+                            </table>
+                        </div>
+                    </div>
+                    <div className="row" style={{ paddingTop: "30px"}}>
+                        <div className="col-xs-4"></div>
+                        <div className="col-xs-3" style={{ paddingLeft: "30px"}}>
+                            <h3>Total Harga : Rp. {this.state.totalPrice}</h3>
+                        </div>
+                    </div>
+                    <div className="row" style={{ paddingTop: "30px"}}>
+                        <div className="col-xs-4"></div>
+                        <div className="col-xs-3" style={{ paddingLeft: "30px"}}>
+                            <input type="button" value="Checkout" className="btn btn-success" onClick={this.onBtnCheckOutClick}/>
+                        </div>
                     </div>
                 </div>
-                <div className="row">
-                    <div className="col-xs-4"></div>
-                    <div className="col-xs-3" style={{ paddingLeft: "30px"}}>
-                        <h3 className="label-success">Layar</h3>
-                    </div>
-                </div>
-                <div className="row" style={{ paddingTop: "30px"}}>
-                    <div className="col-xs-4"></div>
-                    <div className="col-xs-8" style={{ paddingLeft: "90px"}}>
-                        <table>
-                            { this.renderBangku() }
-                        </table>
-                    </div>
-                </div>
-                <div className="row" style={{ paddingTop: "30px"}}>
-                    <div className="col-xs-4"></div>
-                    <div className="col-xs-3" style={{ paddingLeft: "30px"}}>
-                        <h3>Total Harga : Rp. {this.state.totalPrice}</h3>
-                    </div>
-                </div>
-                <div className="row" style={{ paddingTop: "30px"}}>
-                    <div className="col-xs-4"></div>
-                    <div className="col-xs-3" style={{ paddingLeft: "30px"}}>
-                        <input type="button" value="Checkout" className="btn btn-success" onClick={this.onBtnCheckOutClick}/>
-                    </div>
-                </div>
-            </div>
-        );
+            );
+        }
+        
+        return <Redirect to='/' />;
     }
 }
 

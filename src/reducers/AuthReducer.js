@@ -7,7 +7,7 @@ export default (state = INITIAL_STATE, action) => {
         case "USER_LOGIN_FAIL" :
             return { ...state, error: "Authentication Error" };
         case "USER_LOGOUT" :
-            return INITIAL_STATE;
+            return { ...INITIAL_STATE, cookieCheck: true };
         case "COOKIES_CHECKED" :
             return { ...state, cookieCheck: true };
         default :

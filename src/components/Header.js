@@ -9,21 +9,21 @@ const cookies = new Cookies();
 
 class Header extends Component {
 
-    componentWillMount() {
-        const cookieNya = cookies.get('CinemaBertasbih');
-        if(cookieNya !== undefined) {
-            this.props.keepLogin(cookieNya);
-        }
-        else {
-            this.props.cookieChecked();
-        }
-    }
+    // componentWillMount() {
+    //     const cookieNya = cookies.get('CinemaBertasbih');
+    //     if(cookieNya !== undefined) {
+    //         this.props.keepLogin(cookieNya);
+    //     }
+    //     else {
+    //         this.props.cookieChecked();
+    //     }
+    // }
 
-    componentWillReceiveProps(newProps) {
-        if(newProps.auth.username === "") {
-            cookies.remove('CinemaBertasbih');
-        }
-    }
+    // componentWillReceiveProps(newProps) {
+    //     if(newProps.auth.username === "") {
+    //         cookies.remove('CinemaBertasbih');
+    //     }
+    // }
 
     onLogOutClick = () => {
         this.props.onLogout();

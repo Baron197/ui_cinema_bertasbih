@@ -16,11 +16,11 @@ class LoginPage extends Component {
     // test = (num) => {
     //     return num;
     // }
-    componentWillReceiveProps(newProps) {
-        if(newProps.auth.username !== "") {
-            cookies.set('CinemaBertasbih', newProps.auth.email, { path: '/' });
-        }
-    }
+    // componentWillReceiveProps(newProps) {
+    //     if(newProps.auth.username !== "") {
+    //         cookies.set('CinemaBertasbih', newProps.auth.email, { path: '/' });
+    //     }
+    // }
 
     onLoginClick = () => {
         var email = this.refs.email.value;
