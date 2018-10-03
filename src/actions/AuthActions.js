@@ -69,6 +69,9 @@ export const onRegister = (user) => {
                 type: "USER_LOGIN_SUCCESS", 
                 payload: { id: res.data.id, username: res.data.username, email: res.data.email, error: "" }
             });
+            dispatch({
+                type: "COOKIES_CHECKED"
+            });
         })
         .catch((err) => {
             console.log(err);
