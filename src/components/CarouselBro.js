@@ -30,7 +30,7 @@ class CarouselBro extends Component {
             );
         } 
 
-        return <Redirect to="/orderseats" />;
+        return <Redirect to={`/orderseats?id=${this.props.selectedMovie.id}`} />;
     }
 }
 

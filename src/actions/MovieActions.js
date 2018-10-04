@@ -16,6 +16,21 @@ export const getAllMovies = () => {
     };
 };
 
+export const getSpecificMovie = (id) => {
+    return(dispatch) => {
+        axios.get(API_URL_1 + '/movies/' + id)
+            .then((response) => {
+                dispatch({
+                    type: "SELECTED_MOVIE",
+                    payload: response.data
+                })
+            })
+            .catch((err) => {
+                console.log(err);
+            })
+    };
+};
+
 export const selectMovie = (movie) => {
     return {
         type: "SELECTED_MOVIE",

@@ -4,6 +4,8 @@ import { connect } from 'react-redux';
 import { Redirect } from 'react-router-dom';
 import { FormGroup, FormControl } from 'react-bootstrap';
 import { API_URL_1 } from '../supports/api-url/apiurl';
+import { getSpecificMovie } from '../actions';
+import queryString from 'query-string';
 
 class OrderSeats extends Component {
     state = { listBangku: { }, studio: { }, getDataStudio: false, totalPrice: 0}
@@ -17,6 +19,12 @@ class OrderSeats extends Component {
             }).then((response1) => {
                 this.getOrderList("Morning", response1.data[0], false)
             })
+        }
+        else{
+            let params = queryString.parse(this.props.location.search)
+            this.props.getSpecificMovie(params.id);
+            // alert(params.nama);
+            // this.props.getSpecificMovie(this.props.match.params.id);
         }
     }
 
@@ -319,4 +327,4 @@ const mapStateToProps = (state) => {
     return { movie, auth };
 }
 
-export default connect(mapStateToProps)(OrderSeats);
+export default connect(mapStateToProps, { getSpecificMovie })(OrderSeats);
